@@ -1,6 +1,5 @@
 <template>
   <div id="canvasWrap">
-      <div id="currActive">红方</div>
       <canvas id="canvas" width="500" height="550"></canvas>
       <div id="panel">
         <ul id="ul"></ul>
@@ -21,7 +20,9 @@ export default {
   },
   methods: {
     init_chess(){
-      chess.init({},"canvas");
+      chess.init({
+        chessboardStatus: "9999299949999999249999869999999958999999519999999999999999997699"
+      },"canvas");
     }
   },
   created() {

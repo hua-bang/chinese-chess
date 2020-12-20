@@ -1,9 +1,10 @@
 import { chess_arr_black, chess_arr_red } from "./ChessConfig"
+import { group } from "./stringUtil"
+import {generatorChess} from "@/utils/ChessGenerator";
 
 class Chess {
 
     constructor() {
-        this.obj = {}
         this.chess_arr_black = chess_arr_black;
         this.chess_arr_red = chess_arr_red;
     }
@@ -15,6 +16,7 @@ class Chess {
      */
     init(args, canvasId) {
         // 得到画布
+        this.canvasId = canvasId
         this.canvas = document.getElementById(canvasId);
         // 得到一个用于在画布上绘图的环境 2d
         this.ctx = this.canvas.getContext("2d");
@@ -22,6 +24,7 @@ class Chess {
         this.chunk = 50;    // 格子长度
         this.CandidateCircleR = 5;
         this.steps = [];
+        this.chessboardStatus = args.chessboardStatus || null
         this.currActive = "red"
         this.init_background()
         this.init_chess()
@@ -44,6 +47,28 @@ class Chess {
      * 画棋子
      */
     init_chess(){
+        if(this.chessboardStatus)
+            this.init_chess_by_chessboard_status(this.chessboardStatus)
+        else
+            this.init_complete_chess()
+    }
+
+    /**
+     * 根据棋局状态生成棋局
+     */
+    init_chess_by_chessboard_status(status) {
+        let chess_arr = generatorChess(status)
+        this.chess_arr_black = chess_arr.filter((v)=>{
+            return v.type=="black" && v.x < 10;
+        })
+        this.chess_arr_red = chess_arr.filter((v)=>{
+            return v.type=="red" && v.x < 10;
+        })
+        this.chess_arr_all = this.chess_arr_black.concat(this.chess_arr_red)
+        this.draw_chess()
+    }
+
+    draw_chess(){
         const that = this
         this.chess_arr_black.map((v) => {
             v.color = "#000";
@@ -61,8 +86,16 @@ class Chess {
             that.draw_piece(v);
             that.draw_chess_text(v);
         })
+    }
+
+    /**
+     * 完整棋局
+     */
+    init_complete_chess() {
+        const that = this
         //所有棋子
-        this.chess_arr_all = this.chess_arr_black.concat(this.chess_arr_red);
+        this.chess_arr_all = this.chess_arr_black.concat(this.chess_arr_red)
+        that.draw_chess()
     }
 
     /**
@@ -188,7 +221,7 @@ class Chess {
         this.ctx.font = "12px Courier New";
         this.text_arr = ["九", "八", "七", "六", "五", "四", "三", "二", "一"];
         for (let i = 0; i < 9; i++) {
-            this.ctx.fillText((i + 1).toString(), this.chunk * (i + 1) - 5, 20);
+            this.ctx.fillText((i).toString(), this.chunk * (i + 1) - 5, 20);
             this.ctx.fillText(this.text_arr[i], this.chunk * (i + 1) - 5, this.chunk * 10 + 30 + 10);
         }
     }
@@ -257,9 +290,7 @@ class Chess {
                                     that.pre_chess = this.chess_arr_all[all_i];
                                     that.draw_candidate();
                                 } else {
-                                    console.log("eat",that.eat_rule(i,j))
                                     if (that.eat_rule(i,j)) {
-                                        console.log("eat")
                                         that.eat(all_i,this.chess_arr_all[all_i],i,j)
                                     } else if (that.pre_chess.text == "帅") {
                                         if(that.pre_chess.x == i) {
@@ -1092,11 +1123,31 @@ class Chess {
     }
 
     eat(ii,ee,i,j) {
+        console.log("eat")
         this.chess_arr_all.splice(ii,1);
         this.move(i,j);
         if(this.is_over(ee)) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.init();
+            this.reset_chess();
+            this.init({ chessboardStatus:null },this.canvasId);
+            return false;
+        }
+    }
+
+    reset_chess() {
+        this.chess_arr_black = chess_arr_black;
+        this.chess_arr_red = chess_arr_red;
+    }
+
+    is_over(ee) {
+        console.log(ee)
+        if (ee.text == "将") {
+            alert("you win");
+            return true;
+        } else if (ee.text == "帅") {
+            alert("you lose");
+            return true;
+        } else {
             return false;
         }
     }
