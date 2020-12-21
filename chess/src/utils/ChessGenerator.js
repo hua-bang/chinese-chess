@@ -27,9 +27,29 @@ export function generatorChess(status) {
             text: CHESS_NAME_ARR[k],
             type: k<=15?"red":"black",
             x: Number(v[0]) + 1,
-            y: Number(v[1]) + 1
+            y: Number(v[1]) + 1,
+            index: k
         }
         chess_arr.push(chess_obj)
     })
     return chess_arr
+}
+
+export function generatorStatusByChess(chess) {
+    let str = ""
+    for (let i = 0; i < 32; i++ ){
+        str += "99"
+    }
+    let str_arr = group(str,1)
+    for(let i = 0; i < chess.length; i++ ){
+        if(chess[i].x <= 9){
+            str_arr[chess[i].index*2] = chess[i].x - 1;
+            str_arr[chess[i].index*2+1] = chess[i].y - 1;
+        }
+    }
+    let newStr = ""
+    for (let i = 0; i < str_arr.length; i++ ){
+        newStr += str_arr[i]
+    }
+    return newStr
 }

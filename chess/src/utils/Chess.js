@@ -1,12 +1,12 @@
-import { chess_arr_black, chess_arr_red } from "./ChessConfig"
+import chessBus from "../bus/chessBus"
+import { chess_arr_black, chess_arr_red , get_chess_arr_black, get_chess_arr_red } from "./ChessConfig"
 import { group } from "./stringUtil"
-import {generatorChess} from "@/utils/ChessGenerator";
+import {generatorChess, generatorStatusByChess} from "@/utils/ChessGenerator";
 
 class Chess {
 
     constructor() {
-        this.chess_arr_black = chess_arr_black;
-        this.chess_arr_red = chess_arr_red;
+        this.reset_chess()
     }
 
     /**
@@ -1039,10 +1039,6 @@ class Chess {
         }
     }
 
-    is_over(ee) {
-
-    }
-
     note(ee, i, j) {
         let distance = Math.abs(ee.y - j);
         let step;
@@ -1097,7 +1093,7 @@ class Chess {
 
     move(x,y) {
         let that = this;
-        console.log(x,y)
+        // console.log("移动棋子")
         for (let i = 0; i < this.chess_arr_all.length ; i++) {
             let e = that.chess_arr_all[i];
             if (e.x == that.pre_chess.x && e.y == that.pre_chess.y) {
@@ -1105,10 +1101,15 @@ class Chess {
                 e.x = x;
                 e.y = y;
                 that.currActive = e.type == "red" ? "black" : "red";
+                chessBus.$emit("currentPlayerChange", that.currActive)
                 break;
             }
         }
         that.update_chess();
+        if(that.currActive=="black"){
+            let chessboardStatusChange = generatorStatusByChess(this.chess_arr_all);
+            chessBus.$emit("chessboardStatusChange",chessboardStatusChange)
+        }
         that.checked = false;
     }
 
@@ -1122,29 +1123,42 @@ class Chess {
         })
     }
 
+    update_chess_by_status(status) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.init_background();
+        this.init_chess_by_chessboard_status(status)
+    }
+
     eat(ii,ee,i,j) {
-        console.log("eat")
         this.chess_arr_all.splice(ii,1);
         this.move(i,j);
         if(this.is_over(ee)) {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.reset_chess();
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);;
             this.init({ chessboardStatus:null },this.canvasId);
             return false;
         }
     }
 
     reset_chess() {
-        this.chess_arr_black = chess_arr_black;
-        this.chess_arr_red = chess_arr_red;
+        let black = get_chess_arr_black();
+        let red = get_chess_arr_red();
+        this.chess_arr_black = [];
+        this.chess_arr_red = [];
+        for (let i = 0; i < black.length; i++) {
+            this.chess_arr_black.push(black[i])
+        }
+        for (let i = 0; i < red.length; i++) {
+            this.chess_arr_red.push(red[i])
+        }
     }
 
     is_over(ee) {
-        console.log(ee)
         if (ee.text == "将") {
+            this.over=true;
             alert("you win");
             return true;
         } else if (ee.text == "帅") {
+            this.over=true;
             alert("you lose");
             return true;
         } else {

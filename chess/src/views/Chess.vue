@@ -1,5 +1,6 @@
 <template>
   <div id="canvasWrap">
+      <h2>到<b :class="currentRole=='red'?'red':''">{{currentRole=='red'?"红方":"黑方"}}</b>下棋</h2>
       <canvas id="canvas" width="500" height="550"></canvas>
       <div id="panel">
         <ul id="ul"></ul>
@@ -9,20 +10,44 @@
 
 <script>
 import Chess from "../utils/Chess"
+import {getSuggest} from "@/api/chessApi";
+import chessBus from "@/bus/chessBus";
 const chess = new Chess()
 
 export default {
   name: "Chess",
   data() {
     return {
-
+      currentRole: "red"
     }
   },
   methods: {
     init_chess(){
       chess.init({
-        chessboardStatus: "9999299949999999249999869999999958999999519999999999999999997699"
+        chessboardStatus: ""
       },"canvas");
+    },
+    init_chess_by_status(status) {
+      chess.update_chess_by_status(status)
+    },
+    getSuggest(status){
+      getSuggest(status).then(res => {
+        let arr = res.data
+        let max = 0;
+        let maxKey = 0;
+        if(arr){
+          for (let key in arr) {
+            if(arr[key][0]>max){
+              maxKey = key
+            }
+          }
+          this.init_chess_by_status(maxKey)
+          chess.currActive = "red"
+          this.currentRole = "red"
+        }else{
+          this.$message.info("no data or game is over")
+        }
+      })
     }
   },
   created() {
@@ -30,6 +55,10 @@ export default {
   },
   mounted() {
     this.init_chess()
+    chessBus.$on('currentPlayerChange', role => this.currentRole = role)
+    chessBus.$on('chessboardStatusChange', status => {
+      this.getSuggest(status)
+    })
   }
 }
 </script>
@@ -42,5 +71,8 @@ export default {
 }
 #canvas{
   background: #EAC591;
+}
+.red{
+  color: red;
 }
 </style>
