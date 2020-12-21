@@ -38,9 +38,11 @@ export default {
         if(arr){
           for (let key in arr) {
             if(arr[key][0]>max){
+              max = arr[key][0]
               maxKey = key
             }
           }
+          console.log(maxKey)
           this.init_chess_by_status(maxKey)
           chess.currActive = "red"
           this.currentRole = "red"
