@@ -12,6 +12,8 @@
 import Chess from "../utils/Chess"
 import {getSuggest} from "@/api/chessApi";
 import chessBus from "@/bus/chessBus";
+import {generatorStatusByMove} from "@/utils/ChessGenerator";
+
 const chess = new Chess()
 
 export default {
@@ -32,18 +34,12 @@ export default {
     },
     getSuggest(status){
       getSuggest(status).then(res => {
-        let arr = res.data
-        let max = 0;
-        let maxKey = 0;
-        if(arr){
-          for (let key in arr) {
-            if(arr[key][0]>max){
-              max = arr[key][0]
-              maxKey = key
-            }
-          }
-          console.log(maxKey)
-          this.init_chess_by_status(maxKey)
+        let chess_arr = res.data.data
+        if(chess_arr.length>0){
+          let initStatus = chess_arr[0].init;
+          let move = chess_arr[0].moveInit
+          let status = generatorStatusByMove(initStatus,move)
+          this.init_chess_by_status(status)
           chess.currActive = "red"
           this.currentRole = "red"
         }else{
@@ -59,6 +55,7 @@ export default {
     this.init_chess()
     chessBus.$on('currentPlayerChange', role => this.currentRole = role)
     chessBus.$on('chessboardStatusChange', status => {
+      console.log(status)
       this.getSuggest(status)
     })
   }

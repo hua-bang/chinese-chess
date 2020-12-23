@@ -53,3 +53,27 @@ export function generatorStatusByChess(chess) {
     }
     return newStr
 }
+
+/**
+ * 根据初始状态根据move动作进行操作生成状态
+ * @param initStatus
+ * @param move
+ */
+export function generatorStatusByMove(initStatus,move){
+    let str_position_arr = group(initStatus,2);
+    let move_chess_position = group(move,2)
+    let move_chess_begin_position = move_chess_position[0]
+    let move_chess_end_position = move_chess_position[1]
+    let index = str_position_arr.findIndex((v)=>{
+        return v == move_chess_begin_position
+    })
+    console.log(index==-1)
+    if(index==-1)
+        console.log("not find")
+    str_position_arr[index] = move_chess_end_position;
+    let newStr = ""
+    for (let i = 0; i < str_position_arr.length; i++ ){
+        newStr += str_position_arr[i]
+    }
+    return newStr;
+}

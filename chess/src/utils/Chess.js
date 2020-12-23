@@ -29,6 +29,8 @@ class Chess {
         this.init_background()
         this.init_chess()
         this.bind_event();
+        let chessboardStatusChange = generatorStatusByChess(this.chess_arr_all);
+        console.log(chessboardStatusChange)
     }
 
     /**
