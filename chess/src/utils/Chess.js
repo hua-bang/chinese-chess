@@ -1,4 +1,5 @@
 import chessBus from "../bus/chessBus"
+import { learn} from "@/api/chessApi";
 import { chess_arr_black, chess_arr_red , get_chess_arr_black, get_chess_arr_red } from "./ChessConfig"
 import { group } from "./stringUtil"
 import {generatorChess, generatorStatusByChess} from "@/utils/ChessGenerator";
@@ -29,6 +30,8 @@ class Chess {
         this.init_background()
         this.init_chess()
         this.bind_event();
+        let chessboardStatusChange = generatorStatusByChess(this.chess_arr_all);
+        console.log(chessboardStatusChange)
     }
 
     /**
@@ -1094,10 +1097,15 @@ class Chess {
     move(x,y) {
         let that = this;
         // console.log("移动棋子")
+        let chessboardBeginStatus = generatorStatusByChess(this.chess_arr_all);
         for (let i = 0; i < this.chess_arr_all.length ; i++) {
             let e = that.chess_arr_all[i];
             if (e.x == that.pre_chess.x && e.y == that.pre_chess.y) {
                 that.note(e,x,y)
+                if(that.currActive=="black") {
+                    let move = String(e.x - 1) + String(e.y - 1) + String(x-1)+String(y-1)
+                    chessBus.$emit("needLearn",move)
+                }
                 e.x = x;
                 e.y = y;
                 that.currActive = e.type == "red" ? "black" : "red";

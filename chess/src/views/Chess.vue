@@ -10,15 +10,18 @@
 
 <script>
 import Chess from "../utils/Chess"
-import {getSuggest} from "@/api/chessApi";
+import {getSuggest,learn} from "@/api/chessApi";
 import chessBus from "@/bus/chessBus";
+import {generatorStatusByChess, generatorStatusByMove} from "@/utils/ChessGenerator";
+
 const chess = new Chess()
 
 export default {
   name: "Chess",
   data() {
     return {
-      currentRole: "red"
+      currentRole: "red",
+      currentStatus: "",
     }
   },
   methods: {
@@ -26,29 +29,29 @@ export default {
       chess.init({
         chessboardStatus: ""
       },"canvas");
+      this.currentStatus = generatorStatusByChess(chess.chess_arr_all)
     },
     init_chess_by_status(status) {
       chess.update_chess_by_status(status)
     },
     getSuggest(status){
       getSuggest(status).then(res => {
-        let arr = res.data
-        let max = 0;
-        let maxKey = 0;
-        if(arr){
-          for (let key in arr) {
-            if(arr[key][0]>max){
-              max = arr[key][0]
-              maxKey = key
-            }
-          }
-          console.log(maxKey)
-          this.init_chess_by_status(maxKey)
+        let chess_arr = res.data.data
+        if(chess_arr.length>0){
+          let initStatus = chess_arr[0].init;
+          let move = chess_arr[0].moveInit
+          let status = generatorStatusByMove(initStatus,move)
+          this.init_chess_by_status(status)
           chess.currActive = "red"
           this.currentRole = "red"
         }else{
           this.$message.info("no data or game is over")
         }
+      })
+    },
+    learn(status,move) {
+      learn(status,move).then(res => {
+        this.$message.success(res.data.message)
       })
     }
   },
@@ -59,7 +62,13 @@ export default {
     this.init_chess()
     chessBus.$on('currentPlayerChange', role => this.currentRole = role)
     chessBus.$on('chessboardStatusChange', status => {
+      console.log(status)
+      this.currentStatus = status
       this.getSuggest(status)
+    })
+    chessBus.$on('needLearn',move => {
+      console.log("learn" + move + ",currentStatus="+this.currentStatus)
+      this.learn(this.currentStatus,move)
     })
   }
 }
