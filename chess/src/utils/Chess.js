@@ -1164,10 +1164,12 @@ class Chess {
         if (ee.text == "将") {
             this.over=true;
             alert("you win");
+            chessBus.$emit("over")
             return true;
         } else if (ee.text == "帅") {
             this.over=true;
             alert("you lose");
+            chessBus.$emit("over")
             return true;
         } else {
             return false;
