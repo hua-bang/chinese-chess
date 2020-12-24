@@ -77,6 +77,8 @@ export default {
     })
     chessBus.$on("over",() => {
       this.init_chess_by_status("8979695949392919097717866646260600102030405060708012720323436383")
+      chess.currActive = "red"
+      this.currentRole = "red"
     })
   }
 }
